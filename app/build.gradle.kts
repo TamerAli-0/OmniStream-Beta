@@ -15,7 +15,7 @@ plugins {
 }
 
 android {
-    namespace = "com.omnistream.beta"
+    namespace = "com.omnistream"
     compileSdk = 34
 
     defaultConfig {
