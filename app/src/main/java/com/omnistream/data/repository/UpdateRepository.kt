@@ -50,7 +50,11 @@ class UpdateRepository @Inject constructor(
      */
     suspend fun checkForUpdate(): AppUpdate? = withContext(Dispatchers.IO) {
         try {
-            val latestRelease = githubApi.getLatestRelease(GITHUB_OWNER, GITHUB_REPO)
+            val releases = githubApi.getReleases(GITHUB_OWNER, GITHUB_REPO)
+            if (releases.isEmpty()) return@withContext null
+
+            // Get the first release (most recent, includes prereleases)
+            val latestRelease = releases.first()
             val currentVersion = getCurrentVersion()
             val latestVersion = latestRelease.getVersionNumber()
 

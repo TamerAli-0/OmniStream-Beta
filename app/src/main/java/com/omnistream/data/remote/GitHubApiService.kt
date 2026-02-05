@@ -10,13 +10,13 @@ import retrofit2.http.Path
 interface GitHubApiService {
 
     /**
-     * Get the latest release from GitHub repository
+     * Get all releases from GitHub repository (includes prereleases)
      * @param owner GitHub username/organization
      * @param repo Repository name
      */
-    @GET("repos/{owner}/{repo}/releases/latest")
-    suspend fun getLatestRelease(
+    @GET("repos/{owner}/{repo}/releases")
+    suspend fun getReleases(
         @Path("owner") owner: String,
         @Path("repo") repo: String
-    ): AppUpdate
+    ): List<AppUpdate>
 }
