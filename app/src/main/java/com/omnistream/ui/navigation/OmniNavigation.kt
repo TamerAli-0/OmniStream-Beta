@@ -3,6 +3,7 @@ package com.omnistream.ui.navigation
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -435,33 +436,53 @@ fun OmniNavigation(
                                 it.route == screen.route
                             } == true
 
-                            // Use consistent colors - bubble provides visual distinction
-                            val iconColor = if (selected) {
-                                Color.White
-                            } else {
-                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                            }
-                            val textColor = if (selected) {
-                                Color.White
-                            } else {
-                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                            }
+                            // Animated colors - smooth transitions
+                            val targetIconColor = if (selected) Color.White else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                            val targetTextColor = if (selected) Color.White else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+
+                            val iconColor by androidx.compose.animation.animateColorAsState(
+                                targetValue = targetIconColor,
+                                animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy),
+                                label = "iconColor"
+                            )
+                            val textColor by androidx.compose.animation.animateColorAsState(
+                                targetValue = targetTextColor,
+                                animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy),
+                                label = "textColor"
+                            )
 
                             Box(
                                 modifier = Modifier.weight(1f),
                                 contentAlignment = Alignment.Center
                             ) {
-                                // Bubble background for selected item
-                                if (selected) {
+                                // Animated bubble background for selected item - smooth spring physics
+                                val bubbleSize by animateDpAsState(
+                                    targetValue = if (selected) 56.dp else 0.dp,
+                                    animationSpec = spring(
+                                        dampingRatio = Spring.DampingRatioMediumBouncy,
+                                        stiffness = Spring.StiffnessMedium
+                                    ),
+                                    label = "bubbleSize"
+                                )
+                                val bubbleAlpha by animateFloatAsState(
+                                    targetValue = if (selected) 1f else 0f,
+                                    animationSpec = spring(
+                                        dampingRatio = Spring.DampingRatioNoBouncy,
+                                        stiffness = Spring.StiffnessMedium
+                                    ),
+                                    label = "bubbleAlpha"
+                                )
+
+                                if (bubbleSize > 0.dp) {
                                     Box(
                                         modifier = Modifier
-                                            .size(56.dp)
+                                            .size(bubbleSize)
                                             .clip(CircleShape)
                                             .background(
                                                 brush = Brush.radialGradient(
                                                     colors = listOf(
-                                                        Color(0xFF6366F1),
-                                                        Color(0xFF4F46E5)
+                                                        Color(0xFF6366F1).copy(alpha = bubbleAlpha),
+                                                        Color(0xFF4F46E5).copy(alpha = bubbleAlpha)
                                                     )
                                                 )
                                             )
