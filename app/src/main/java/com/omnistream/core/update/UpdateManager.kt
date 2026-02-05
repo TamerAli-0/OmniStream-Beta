@@ -62,11 +62,18 @@ class UpdateManager @Inject constructor(
             }
         }
 
-        context.registerReceiver(
-            onComplete,
-            IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),
-            Context.RECEIVER_NOT_EXPORTED
-        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            context.registerReceiver(
+                onComplete,
+                IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),
+                Context.RECEIVER_NOT_EXPORTED
+            )
+        } else {
+            context.registerReceiver(
+                onComplete,
+                IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE)
+            )
+        }
     }
 
     /**
@@ -92,17 +99,24 @@ class UpdateManager @Inject constructor(
                         cursor.getColumnIndexOrThrow(DownloadManager.COLUMN_STATUS)
                     )
 
-                    if (bytesTotal > 0) {
-                        val progress = ((bytesDownloaded * 100) / bytesTotal).toInt()
-                        _downloadProgress.value = DownloadState.Downloading(progress)
+                    when (status) {
+                        DownloadManager.STATUS_RUNNING -> {
+                            if (bytesTotal > 0) {
+                                val progress = ((bytesDownloaded * 100) / bytesTotal).toInt()
+                                _downloadProgress.value = DownloadState.Downloading(progress)
+                            }
+                            handler.postDelayed(this, 100) // Update every 100ms
+                        }
+                        DownloadManager.STATUS_SUCCESSFUL -> {
+                            _downloadProgress.value = DownloadState.Downloading(100)
+                            // Download complete, installation will be triggered by BroadcastReceiver
+                        }
+                        DownloadManager.STATUS_FAILED -> {
+                            _downloadProgress.value = DownloadState.Error("Download failed")
+                        }
                     }
 
                     cursor.close()
-
-                    // Keep monitoring if still downloading
-                    if (status == DownloadManager.STATUS_RUNNING) {
-                        handler.postDelayed(this, 100) // Update every 100ms
-                    }
                 } else {
                     cursor.close()
                 }
