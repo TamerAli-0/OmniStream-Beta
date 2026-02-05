@@ -45,6 +45,7 @@ fun SettingsScreen(
     val colorScheme by viewModel.colorScheme.collectAsState()
     val darkMode by viewModel.darkMode.collectAsState()
     var showDnsDialog by remember { mutableStateOf(false) }
+    var showAccentColorDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background
@@ -326,7 +327,7 @@ fun SettingsScreen(
                     icon = Icons.Default.ColorLens,
                     title = "Accent Color",
                     subtitle = colorScheme.replaceFirstChar { it.uppercase() },
-                    onClick = {}
+                    onClick = { showAccentColorDialog = true }
                 )
             }
 
@@ -471,6 +472,55 @@ fun SettingsScreen(
             confirmButton = {},
             dismissButton = {
                 TextButton(onClick = { showDnsDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // Accent Color Dialog
+    if (showAccentColorDialog) {
+        AlertDialog(
+            onDismissRequest = { showAccentColorDialog = false },
+            containerColor = Color(0xFF1a1a1a),
+            title = { Text("Select Accent Color", color = MaterialTheme.colorScheme.onBackground) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf(
+                        "Purple", "Ocean", "Emerald", "Sunset",
+                        "Rose", "Midnight", "Crimson", "Gold", "Saikou"
+                    ).forEach { color ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    viewModel.setColorScheme(color.lowercase())
+                                    showAccentColorDialog = false
+                                }
+                                .padding(12.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                color,
+                                fontSize = 16.sp,
+                                color = MaterialTheme.colorScheme.onBackground
+                            )
+                            if (colorScheme.equals(color, ignoreCase = true)) {
+                                Icon(
+                                    Icons.Default.Check,
+                                    contentDescription = "Selected",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showAccentColorDialog = false }) {
                     Text("Cancel")
                 }
             }
