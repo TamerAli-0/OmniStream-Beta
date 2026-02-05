@@ -47,6 +47,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.statusBars
@@ -164,16 +165,23 @@ fun OmniNavigation(
         currentDestination?.hierarchy?.any { it.route == screen.route } == true
     }
 
+    // Calculate responsive bottom padding - no hardcoding!
+    val density = LocalDensity.current
+    val navigationBarsHeight = WindowInsets.navigationBars.getBottom(density)
+    val navBarHeight = 80.dp
+    val navBarPadding = 16.dp
+    val totalNavSpace = with(density) { navigationBarsHeight.toDp() } + navBarHeight + navBarPadding
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .windowInsetsPadding(WindowInsets.statusBars) // Padding for status bar at top
     ) {
-        // Main content
+        // Main content with dynamic bottom padding
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = if (showBottomNav) 120.dp else 0.dp)
+                .padding(bottom = if (showBottomNav) totalNavSpace else 0.dp)
                 .hideSystemBarsOnInteraction() // Hide phone nav on scroll/tap
         ) {
             NavHost(
@@ -385,11 +393,11 @@ fun OmniNavigation(
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
             ) {
-                // Gradient fade above nav
+                // Gradient fade above nav - responsive height
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(120.dp)
+                        .height(totalNavSpace)
                         .align(Alignment.BottomCenter)
                         .background(
                             Brush.verticalGradient(
