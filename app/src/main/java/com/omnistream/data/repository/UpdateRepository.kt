@@ -21,7 +21,7 @@ class UpdateRepository @Inject constructor(
 ) {
     companion object {
         private const val GITHUB_OWNER = "TamerAli-0"
-        private const val GITHUB_REPO = "OmniStream"
+        private const val GITHUB_REPO = "OmniStream-Beta"
     }
 
     /**
