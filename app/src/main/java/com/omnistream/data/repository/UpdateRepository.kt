@@ -87,8 +87,17 @@ class UpdateRepository @Inject constructor(
      * @return true if remoteVersion is newer than currentVersion
      */
     private fun isNewerVersion(remoteVersion: String, currentVersion: String): Boolean {
-        val remoteParts = remoteVersion.split(".").map { it.toIntOrNull() ?: 0 }
-        val currentParts = currentVersion.split(".").map { it.toIntOrNull() ?: 0 }
+        android.util.Log.d("UpdateRepository", "Comparing: remote='$remoteVersion' vs current='$currentVersion'")
+
+        // Clean versions: remove any suffix like "-beta", "-alpha", etc
+        val cleanRemote = remoteVersion.split("-")[0]
+        val cleanCurrent = currentVersion.split("-")[0]
+
+        val remoteParts = cleanRemote.split(".").map { it.toIntOrNull() ?: 0 }
+        val currentParts = cleanCurrent.split(".").map { it.toIntOrNull() ?: 0 }
+
+        android.util.Log.d("UpdateRepository", "Remote parts: $remoteParts")
+        android.util.Log.d("UpdateRepository", "Current parts: $currentParts")
 
         val maxLength = maxOf(remoteParts.size, currentParts.size)
 
@@ -96,12 +105,21 @@ class UpdateRepository @Inject constructor(
             val remotePart = remoteParts.getOrNull(i) ?: 0
             val currentPart = currentParts.getOrNull(i) ?: 0
 
+            android.util.Log.d("UpdateRepository", "Comparing part $i: $remotePart vs $currentPart")
+
             when {
-                remotePart > currentPart -> return true
-                remotePart < currentPart -> return false
+                remotePart > currentPart -> {
+                    android.util.Log.d("UpdateRepository", "Remote is newer!")
+                    return true
+                }
+                remotePart < currentPart -> {
+                    android.util.Log.d("UpdateRepository", "Current is newer!")
+                    return false
+                }
             }
         }
 
+        android.util.Log.d("UpdateRepository", "Versions are equal")
         return false // Versions are equal
     }
 }
