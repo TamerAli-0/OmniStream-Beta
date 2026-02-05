@@ -50,21 +50,34 @@ class UpdateRepository @Inject constructor(
      */
     suspend fun checkForUpdate(): AppUpdate? = withContext(Dispatchers.IO) {
         try {
+            android.util.Log.d("UpdateRepository", "Checking for updates...")
+            android.util.Log.d("UpdateRepository", "Fetching releases from: $GITHUB_OWNER/$GITHUB_REPO")
+
             val releases = githubApi.getReleases(GITHUB_OWNER, GITHUB_REPO)
-            if (releases.isEmpty()) return@withContext null
+            android.util.Log.d("UpdateRepository", "Found ${releases.size} releases")
+
+            if (releases.isEmpty()) {
+                android.util.Log.d("UpdateRepository", "No releases found")
+                return@withContext null
+            }
 
             // Get the first release (most recent, includes prereleases)
             val latestRelease = releases.first()
             val currentVersion = getCurrentVersion()
             val latestVersion = latestRelease.getVersionNumber()
 
+            android.util.Log.d("UpdateRepository", "Current version: $currentVersion")
+            android.util.Log.d("UpdateRepository", "Latest version: $latestVersion")
+
             if (isNewerVersion(latestVersion, currentVersion)) {
+                android.util.Log.d("UpdateRepository", "Update available! $currentVersion -> $latestVersion")
                 latestRelease
             } else {
+                android.util.Log.d("UpdateRepository", "No update needed. Already on latest or newer version")
                 null
             }
         } catch (e: Exception) {
-            // Network error or no releases found
+            android.util.Log.e("UpdateRepository", "Error checking for updates", e)
             null
         }
     }
