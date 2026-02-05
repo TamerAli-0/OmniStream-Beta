@@ -49,9 +49,12 @@ class MainViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), com.omnistream.core.update.DownloadState.Idle)
 
     init {
+        android.util.Log.d("MainViewModel", "===== MainViewModel CREATED =====")
         viewModelScope.launch {
+            android.util.Log.d("MainViewModel", "Init coroutine started")
             val hasToken = userPreferences.authToken.first() != null
             val hasLoggedInBefore = userPreferences.hasLoggedInBefore.first()
+            android.util.Log.d("MainViewModel", "hasToken=$hasToken, hasLoggedInBefore=$hasLoggedInBefore")
 
             _startDestination.value = when {
                 // Currently logged in - go to home
@@ -63,7 +66,9 @@ class MainViewModel @Inject constructor(
             }
 
             // Check for updates after a short delay (let app initialize first)
+            android.util.Log.d("MainViewModel", "Waiting 2 seconds before checking for updates...")
             delay(2000)
+            android.util.Log.d("MainViewModel", "Now calling checkForUpdates()")
             checkForUpdates()
         }
     }
