@@ -78,12 +78,9 @@ class MainViewModel @Inject constructor(
             try {
                 val update = updateRepository.checkForUpdate()
                 if (update != null) {
-                    // Check if user already dismissed this version
-                    val dismissedVersion = userPreferences.dismissedUpdateVersion.first()
-                    if (dismissedVersion != update.getVersionNumber()) {
-                        _availableUpdate.value = update
-                        _showUpdateDialog.value = true
-                    }
+                    // Always show update - user will see it again if they press "Later"
+                    _availableUpdate.value = update
+                    _showUpdateDialog.value = true
                 }
             } catch (e: Exception) {
                 // Silently fail - don't interrupt user experience
@@ -104,14 +101,9 @@ class MainViewModel @Inject constructor(
     }
 
     fun dismissUpdateDialog() {
-        viewModelScope.launch {
-            val update = _availableUpdate.value
-            if (update != null) {
-                // Save dismissed version so we don't show this update again
-                userPreferences.setDismissedUpdateVersion(update.getVersionNumber())
-            }
-            _showUpdateDialog.value = false
-        }
+        // Just close the dialog - don't mark as dismissed
+        // User will see it again next time they open the app
+        _showUpdateDialog.value = false
     }
 
     fun resetDownloadState() {
