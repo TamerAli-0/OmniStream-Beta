@@ -54,10 +54,22 @@ class UpdateManager @Inject constructor(
         // Register receiver to listen for download completion
         val onComplete = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
+                android.util.Log.d("UpdateManager", "BroadcastReceiver triggered!")
+                android.widget.Toast.makeText(context, "Download complete! Installing...", android.widget.Toast.LENGTH_SHORT).show()
+
                 val id = intent.getLongExtra(DownloadManager.EXTRA_DOWNLOAD_ID, -1)
+                android.util.Log.d("UpdateManager", "Download ID: $id, Expected: $downloadId")
+
                 if (id == downloadId) {
+                    android.util.Log.d("UpdateManager", "IDs match, calling installApk")
                     installApk(downloadManager, id)
-                    context.unregisterReceiver(this)
+                    try {
+                        context.unregisterReceiver(this)
+                    } catch (e: Exception) {
+                        android.util.Log.e("UpdateManager", "Error unregistering receiver", e)
+                    }
+                } else {
+                    android.util.Log.d("UpdateManager", "IDs don't match, ignoring")
                 }
             }
         }
@@ -129,23 +141,33 @@ class UpdateManager @Inject constructor(
      * Install downloaded APK
      */
     private fun installApk(downloadManager: DownloadManager, downloadId: Long) {
+        android.util.Log.d("UpdateManager", "installApk called")
         val uri = downloadManager.getUriForDownloadedFile(downloadId)
+        android.util.Log.d("UpdateManager", "URI: $uri")
 
         if (uri == null) {
+            android.util.Log.e("UpdateManager", "URI is null!")
+            android.widget.Toast.makeText(context, "Download failed - URI is null", android.widget.Toast.LENGTH_LONG).show()
             _downloadProgress.value = DownloadState.Error("Download failed")
             return
         }
 
         try {
+            android.util.Log.d("UpdateManager", "Creating install intent")
             val intent = Intent(Intent.ACTION_VIEW).apply {
                 setDataAndType(uri, "application/vnd.android.package-archive")
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
 
+            android.util.Log.d("UpdateManager", "Starting install activity")
+            android.widget.Toast.makeText(context, "Opening installer...", android.widget.Toast.LENGTH_SHORT).show()
             context.startActivity(intent)
             _downloadProgress.value = DownloadState.ReadyToInstall
+            android.util.Log.d("UpdateManager", "Install activity started successfully")
         } catch (e: Exception) {
+            android.util.Log.e("UpdateManager", "Error starting install", e)
+            android.widget.Toast.makeText(context, "Install error: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
             _downloadProgress.value = DownloadState.Error(e.message ?: "Installation failed")
         }
     }
